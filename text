@@ -1,0 +1,15 @@
+Laden von Daten aus JSON-Dateien:
+
+Die Verwendung von JSON-Dateien für die Speicherung von Aufgaben- und Ressourcendaten bietet eine einfache Möglichkeit, strukturierte Informationen zu verwalten.
+Ich habe mich für die Verwendung von json.load() entschieden, da es eine eingebaute Methode in Python ist, die JSON-Daten direkt in Python-Datenstrukturen (Listen, Dictionaries usw.) umwandelt.
+Beim Laden der Daten habe ich auch eine Sortierung der Aufgaben nach ihrer Deadline implementiert, um eine übersichtlichere Darstellung im Zeitplan zu ermöglichen.
+Generierung des Zeitplans:
+
+Bei der Berechnung der benötigten Zeit für jede Aufgabe habe ich den Planfaktor berücksichtigt, um die Flexibilität des Zeitplans zu erhöhen. Dies ermöglicht es, die geplante Arbeitszeit für Aufgaben zu variieren, je nach den Anforderungen oder Veränderungen im Projekt.
+Um eine gerechte Verteilung der Ressourcen zu gewährleisten, habe ich den verfügbaren Arbeitsaufwand auf die verfügbaren Ressourcen aufgeteilt. Dabei habe ich den Gesamtarbeitsaufwand für die Aufgabe und die Verfügbarkeit der Ressourcen berücksichtigt.
+Anzeige des Zeitplans:
+
+Die Formatierung der Terminalausgabe wurde so gestaltet, dass sie übersichtlich und leicht verständlich ist. Dies erleichtert es dem Benutzer, den Zeitplan schnell zu erfassen und die zugewiesenen Aufgaben und Ressourcen zu identifizieren.
+Ich habe auch die Aufgaben nach ihrer Deadline angezeigt, um dem Benutzer eine klare Vorstellung davon zu geben, welche Aufgaben bis wann erledigt sein müssen.
+Abschluss:
+Die Implementierung des TaskJuggler-Skripts wurde mit dem Ziel entwickelt, eine effiziente Verwaltung von Aufgaben und Ressourcen in Projekten zu ermöglichen. Durch die Berücksichtigung verschiedener Faktoren wie Datenverarbeitung, Zeitplanung und Benutzerfreundlichkeit wurde ein nützliches Werkzeug geschaffen, das zur Organisation und Planung von Projekten beiträgt.
