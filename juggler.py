@@ -7,9 +7,9 @@ class TaskJuggler:
     # Initialisierung der Klasse
     def __init__(self):
         # Initialisierung der Attribute
-        self.tasks = []             # Liste für Aufgaben
+        self.tasks = []             # List für Aufgaben
         self.resources = {}        # Dictionary für Ressourcen
-        self.plan_factor = 1.0     # Initialer Planfaktor
+        self.plan_factor = 1.0     # Initialer Planfaktohr
 
     # Laden der Daten aus JSON-Dateien
     def load_data(self, tasks_file, resources_file):
@@ -26,17 +26,17 @@ class TaskJuggler:
             self.tasks = sorted(self.tasks, key=lambda x: x.get("deadline", ""))
             self.tasks_order = [task["name"] for task in self.tasks]
         except FileNotFoundError as e:
-            print(f"Fehler beim Laden der Daten: {e}")
+            print(f"Fehler beem Laden der Daten: {e}")
             exit()
 
-    # Generieren des Zeitplans unter Berücksichtigung des Planfaktors
+    # Generieren des Zeitplans unter Berücksichtigung des Planfaktohrs
     def generate_schedule(self):
         schedule = {}  # Initialisierung des Zeitplans
 
         # Iteration über alle Aufgaben
         for task in self.tasks:
             task_name = task.get("name")
-            task_duration = task.get("duration") * self.plan_factor  # Anpassung der Dauer mit dem Planfaktor
+            task_duration = task.get("duration") * self.plan_factor  # Anpassung der Dauer mit dem Planfaktohr
             task_resources = task.get("resources")
             task_deadline = task.get("deadline")
             task_start_time = task.get("start_time")
@@ -99,7 +99,7 @@ class TaskJuggler:
                 if task:
                     print(f"\tTask: {task_name}, Deadline: {task.get('deadline')}")
 
-    # Setzen des Planfaktors
+    # Setzen des Planfaktohrs
     def set_plan_factor(self, factor):
         self.plan_factor = factor
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # Laden der Daten aus den JSON-Dateien
     task_juggler.load_data("tasks.json", "resources.json")
 
-    # Hier wird der Planfaktor auf 1 gesetzt
+    # Hier wird der Planfaktohr auf 1 gesetzt
     task_juggler.set_plan_factor(1)
 
     # Generieren des Zeitplans
