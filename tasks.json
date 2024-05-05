@@ -1,17 +1,23 @@
 [
     {
         "name": "Task1",
-        "resources": ["Mitarbeiter1", "Mitarbeiter2"],
-        "duration": 10
+        "resources": {"Igor": "2024-06-01"},
+        "duration": 24,
+        "deadline": "2024-06-10",
+        "start_time": "2024-06-01"
     },
     {
         "name": "Task2",
-        "resources": ["Mitarbeiter2", "Mitarbeiter3"],
-        "duration": 15
+        "resources": {"Max": "2024-06-01"},
+        "duration": 48,
+        "deadline": "2024-06-14",
+        "start_time": "2024-06-01"
     },
     {
         "name": "Task3",
-        "resources": ["Mitarbeiter1", "Mitarbeiter3"],
-        "duration": 20
+        "resources": {"Igor": "2024-06-01", "Max": "2024-06-01"},
+        "duration": 24,
+        "deadline": "2024-06-21",
+        "start_time": "2024-06-01"
     }
 ]
