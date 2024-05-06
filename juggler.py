@@ -6,6 +6,7 @@ class TaskJuggler:
         self.tasks = []
         self.resources = {}
 
+    # Daten laden
     def load_data(self, tasks_file, resources_file):
         try:
             with open(tasks_file, "r") as f:
@@ -20,6 +21,7 @@ class TaskJuggler:
             print(f"Fehler beim Laden der Daten: {e}")
             exit()
 
+    # Zeitplan generieren
     def generate_schedule(self):
         schedule = {}
 
@@ -44,9 +46,10 @@ class TaskJuggler:
                 resource_data = self.resources[resource_name]
                 resource_availability = resource_data["availability"]
                 resource_plan_factor = resource_data.get("plan_factor", 1.0)  # Default Planfaktor ist 1.0
+                resource_absence_factor = resource_data.get("absence_factor", 1.0)  # Default Abwesenheitsfaktor ist 1.0
 
                 allocation_ratio = min(task_duration / total_duration_needed, resource_availability / total_duration_needed)
-                allocated_duration = round(allocation_ratio * task_duration * resource_plan_factor, 2)
+                allocated_duration = round(allocation_ratio * task_duration * resource_plan_factor * resource_absence_factor, 2)
 
                 if allocated_duration > 24:
                     days = math.ceil(allocated_duration / 24)
@@ -60,6 +63,7 @@ class TaskJuggler:
 
         return schedule
 
+    # Zeitplan anzeigen
     def display_schedule(self, schedule):
         print("\033[1mWeekly Schedule:\033[0m")
         for task, resources in schedule.items():
@@ -84,8 +88,14 @@ class TaskJuggler:
                     print(f"\tTask: {task_name}, Deadline: {task.get('deadline')}")
 
 if __name__ == "__main__":
+    # Hauptskript
     task_juggler = TaskJuggler()
+
+    # Daten laden
     task_juggler.load_data("tasks.json", "resources.json")
 
+    # Zeitplan generieren
     schedule = task_juggler.generate_schedule()
+
+    # Zeitplan anzeigen
     task_juggler.display_schedule(schedule)
