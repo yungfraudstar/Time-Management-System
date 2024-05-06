@@ -1,178 +1,124 @@
-import tkinter as tk
-from tkinter import messagebox, simpledialog
 import json
-from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
-import numpy as np
+import math
+from datetime import datetime
 
-class TeamManagementApp(tk.Tk):
+class TaskJuggler:
+    """Eine Klasse zum Erstellen eines Zeitplans basierend auf Aufgaben und Ressourcen."""
+
     def __init__(self):
-        super().__init__()
-        self.title("Team Management System")
-        self.geometry("800x600")  # Fenstergröße anpassen
-        
-        self.tasks = {}  # Dictionary zum Speichern der Aufgaben
+        """Initialisiert eine neue Instanz von TaskJuggler."""
+        self.tasks = []
+        self.resources = {}
 
-        self.user_name = simpledialog.askstring("Nutzername", "Geben Sie Ihren Namen ein:")
+    def load_data(self, tasks_file, resources_file):
+        """Lädt Aufgaben- und Ressourcendaten aus JSON-Dateien.
 
-        # Widgets für die Hauptseite
-        self.task_name_label = tk.Label(self, text="Aufgabenname:")
-        self.task_name_label.pack()
-        self.task_entry = tk.Entry(self)
-        self.task_entry.pack()
-
-        self.deadline_label = tk.Label(self, text="Deadline (DD.MM.YYYY):")
-        self.deadline_label.pack()
-        self.deadline_entry = tk.Entry(self)
-        self.deadline_entry.pack()
-
-        self.priority_label = tk.Label(self, text="Priorität:")
-        self.priority_label.pack()
-        self.priority_var = tk.StringVar(self)
-        self.priority_var.set("Not important at all")
-        self.priority_menu = tk.OptionMenu(self, self.priority_var, "Not important at all", "Not so important", "Still has time", "Important", "Very important")
-        self.priority_menu.pack()
-
-        self.add_task_button = tk.Button(self, text="Aufgabe hinzufügen", command=self.add_task)
-        self.add_task_button.pack()
-
-        self.task_listbox = tk.Listbox(self)
-        self.task_listbox.pack()
-        self.task_listbox.bind("<Double-Button-1>", self.show_task_details)
-
-        self.update_priority_button = tk.Button(self, text="Priorität aktualisieren", command=self.update_priority)
-        self.update_priority_button.pack()
-
-        self.update_deadline_button = tk.Button(self, text="Deadline aktualisieren", command=self.update_deadline)
-        self.update_deadline_button.pack()
-
-        self.delete_task_button = tk.Button(self, text="Aufgabe löschen", command=self.delete_task)
-        self.delete_task_button.pack()
-
-        self.show_timeline_button = tk.Button(self, text="Zeitstrahl anzeigen", command=self.show_timeline)
-        self.show_timeline_button.pack()
-
-        # Aufgaben aus JSON-Datei laden
-        self.load_tasks_from_json()
-
-    def add_task(self):
-        task_name = self.task_entry.get()
-        deadline = self.deadline_entry.get()
-        priority = self.priority_var.get()
-        if task_name:
-            # Überprüfen, ob die Deadline und Priorität eingegeben wurden
-            if deadline:
-                self.tasks[task_name] = {"deadline": deadline, "priority": priority, "assigned_to": self.user_name}
-                self.save_tasks_to_json()
-                self.update_task_listbox()
-                messagebox.showinfo("Erfolg", "Aufgabe erfolgreich hinzugefügt!")
-            else:
-                messagebox.showerror("Fehler", "Bitte geben Sie die Deadline ein.")
-        else:
-            messagebox.showerror("Fehler", "Bitte geben Sie den Namen der Aufgabe ein.")
-
-    def update_task_listbox(self):
-        self.task_listbox.delete(0, tk.END)
-        for task in self.tasks:
-            self.task_listbox.insert(tk.END, task)
-
-    def load_tasks_from_json(self):
+        Args:
+            tasks_file (str): Der Dateipfad zur Datei mit den Aufgabendaten.
+            resources_file (str): Der Dateipfad zur Datei mit den Ressourcendaten.
+        """
         try:
-            with open("tasks.json", "r") as f:
+            with open(tasks_file, "r") as f:
                 self.tasks = json.load(f)
-            self.update_task_listbox()
-        except FileNotFoundError:
-            pass  # Wenn die JSON-Datei noch nicht existiert, machen wir nichts
 
-    def save_tasks_to_json(self):
-        with open("tasks.json", "w") as f:
-            json.dump(self.tasks, f)
+            with open(resources_file, "r") as f:
+                self.resources = json.load(f)
 
-    def show_task_details(self, event):
-        selected_task_index = self.task_listbox.curselection()
-        if selected_task_index:
-            selected_task_name = self.task_listbox.get(selected_task_index)
-            task_details = self.tasks[selected_task_name]
-            deadline = task_details["deadline"]
-            priority = task_details["priority"]
-            assigned_to = task_details["assigned_to"]
-            messagebox.showinfo("Aufgabendetails", f"Aufgabe: {selected_task_name}\nDeadline: {deadline}\nPriorität: {priority}\nZugewiesen an: {assigned_to}")
+            self.tasks = sorted(self.tasks, key=lambda x: x.get("deadline", ""))
+            self.tasks_order = [task["name"] for task in self.tasks]
+        except FileNotFoundError as e:
+            print(f"Fehler beim Laden der Daten: {e}")
+            exit()
 
-    def update_priority(self):
-        selected_task_index = self.task_listbox.curselection()
-        if selected_task_index:
-            selected_task_name = self.task_listbox.get(selected_task_index)
-            new_priority = simpledialog.askstring("Priorität aktualisieren", f"Aktuelle Priorität für {selected_task_name}: {self.tasks[selected_task_name]['priority']}\nNeue Priorität:")
-            if new_priority:
-                self.tasks[selected_task_name]["priority"] = new_priority
-                self.save_tasks_to_json()
-                self.update_task_listbox()
-                messagebox.showinfo("Erfolg", "Priorität erfolgreich aktualisiert!")
+    def generate_schedule(self):
+        """Generiert einen Zeitplan basierend auf den geladenen Aufgaben- und Ressourcendaten.
 
-    def update_deadline(self):
-        selected_task_index = self.task_listbox.curselection()
-        if selected_task_index:
-            selected_task_name = self.task_listbox.get(selected_task_index)
-            new_deadline = simpledialog.askstring("Deadline aktualisieren", f"Aktuelle Deadline für {selected_task_name}: {self.tasks[selected_task_name]['deadline']}\nNeue Deadline (DD.MM.YYYY):")
-            if new_deadline:
-                self.tasks[selected_task_name]["deadline"] = new_deadline
-                self.save_tasks_to_json()
-                self.update_task_listbox()
-                messagebox.showinfo("Erfolg", "Deadline erfolgreich aktualisiert!")
+        Returns:
+            dict: Ein Zeitplan mit zugewiesenen Aufgaben und Ressourcen.
+        """
+        schedule = {}
 
-    def delete_task(self):
-        selected_task_index = self.task_listbox.curselection()
-        if selected_task_index:
-            selected_task_name = self.task_listbox.get(selected_task_index)
-            confirm = messagebox.askyesno("Aufgabe löschen", f"Möchten Sie die Aufgabe '{selected_task_name}' wirklich löschen?")
-            if confirm:
-                del self.tasks[selected_task_name]
-                self.save_tasks_to_json()
-                self.update_task_listbox()
-                messagebox.showinfo("Erfolg", "Aufgabe erfolgreich gelöscht!")
+        for task in self.tasks:
+            task_name = task.get("name")
+            task_duration = task.get("duration")
+            task_resources = task.get("resources")
+            task_deadline = task.get("deadline")
+            task_start_time = task.get("start_time")
 
-    def show_timeline(self):
-        # Daten für den Zeitstrahl vorbereiten
-        dates = []
-        priorities = []
-        tasks = []
-        for task, details in self.tasks.items():
-            deadline = datetime.strptime(details["deadline"], "%d.%m.%Y")  # Anpassung des Datumsformats
-            dates.append(deadline)
-            priorities.append(details["priority"])
-            tasks.append(task)
+            if not all([task_name, task_duration, task_resources, task_deadline, task_start_time]):
+                print("Ungültige Aufgabe in der Datenquelle.")
+                continue
 
-        # Prioritäten in Werte konvertieren
-        priority_mapping = {
-            "Not important at all": 0.00,
-            "Not so important": 0.25,
-            "Still has time": 0.50,
-            "Important": 0.75,
-            "Very important": 1.00
-        }
-        priority_values = [priority_mapping[p] for p in priorities]
+            total_duration_needed = sum(task_duration for _ in task_resources)
 
-        # Zeitstrahl erstellen
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot_date(dates, priority_values, "-")
+            for resource_name in task_resources:
+                if resource_name not in self.resources:
+                    print(f"Unbekannte Ressource '{resource_name}' in der Aufgabe '{task_name}'.")
+                    continue
 
-        # Beschriftungen hinzufügen (mit Prioritäten)
-        for i, (txt, priority) in enumerate(zip(tasks, priorities)):
-            ax.annotate(f"{txt} ({priority})", (dates[i], priority_values[i]), xytext=(-10, 0), textcoords="offset points", ha="right")
+                resource_data = self.resources[resource_name]
+                resource_availability = resource_data["availability"]
+                resource_plan_factor = resource_data.get("plan_factor", 1.0)
+                resource_absence = resource_data.get("absence")
 
-        # Achsen formatieren
-        ax.xaxis_date()
-        fig.autofmt_xdate()
-        ax.set_xlabel("Deadline")
-        ax.set_ylabel("Priorität")
-        ax.set_yticks([0.00, 0.25, 0.50, 0.75, 1.00])  # Festlegen der Y-Achsen-Ticks
-        ax.set_yticklabels(priority_mapping.keys())  # Verwenden der Prioritäten als Beschriftungen
+                # Berücksichtigung der Abwesenheit
+                if resource_absence:
+                    absence_start_date = datetime.strptime(resource_absence["start_date"], "%Y-%m-%d")
+                    absence_end_date = datetime.strptime(resource_absence["end_date"], "%Y-%m-%d")
+                    task_start_date = datetime.strptime(task_start_time, "%Y-%m-%d")
 
-        ax.set_title("Aufgaben Zeitstrahl")
+                    if absence_start_date <= task_start_date <= absence_end_date:
+                        continue
 
-        plt.tight_layout()
-        plt.show()
+                allocation_ratio = min(task_duration / total_duration_needed, resource_availability / total_duration_needed)
+                allocated_duration = round(allocation_ratio * task_duration * resource_plan_factor, 2)
+
+                if allocated_duration > 24:
+                    days = math.ceil(allocated_duration / 24)
+                    schedule.setdefault(task_name, {}).setdefault(resource_name, []).append((f"{days} days", task_start_time))
+                else:
+                    schedule.setdefault(task_name, {}).setdefault(resource_name, []).append((f"{allocated_duration} hours", task_start_time))
+
+                self.resources[resource_name]["availability"] -= allocated_duration
+
+        schedule["tasks_order"] = self.tasks_order
+
+        return schedule
+
+    def display_schedule(self, schedule):
+        """Zeigt den generierten Zeitplan im Terminal an.
+
+        Args:
+            schedule (dict): Der generierte Zeitplan.
+        """
+        print("\033[1mWeekly Schedule:\033[0m")
+        for task, resources in schedule.items():
+            if task == "tasks_order":
+                continue
+            print("\033[1mTask:\033[0m", task)
+            if isinstance(resources, dict):
+                for resource, durations in resources.items():
+                    for duration, start_time in durations:
+                        print("\t\033[1mResource:\033[0m", resource)
+                        print("\t\t\033[1mDuration:\033[0m", duration)
+                        print("\t\t\033[1mStart Time:\033[0m", start_time)
+            else:
+                print("\t\033[1mNo assigned resources.\033[0m")
+        
+        tasks_order = schedule.get("tasks_order")
+        if tasks_order:
+            print("\n\033[1mTask Deadlines:\033[0m")
+            for task_name in tasks_order:
+                task = next((t for t in self.tasks if t["name"] == task_name), None)
+                if task:
+                    print(f"\tTask: {task_name}, Deadline: {task.get('deadline')}")
 
 if __name__ == "__main__":
-    app = TeamManagementApp()
-    app.mainloop()
+    """Hauptskript zum Laden von Daten, Generieren eines Zeitplans und Anzeigen des Zeitplans."""
+    task_juggler = TaskJuggler()
+
+    task_juggler.load_data("tasks.json", "resources.json")
+
+    schedule = task_juggler.generate_schedule()
+
+    task_juggler.display_schedule(schedule)
