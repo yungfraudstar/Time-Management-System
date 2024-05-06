@@ -1,5 +1,10 @@
 {
-    "Mitarbeiter1": {"availability": 40},
-    "Mitarbeiter2": {"availability": 30},
-    "Mitarbeiter3": {"availability": 50}
+  "Resource1": {
+    "availability": 40,
+    "plan_factor": 1.2
+  },
+  "Resource2": {
+    "availability": 50,
+    "plan_factor": 0.8
+  }
 }
