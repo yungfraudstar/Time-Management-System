@@ -3,68 +3,63 @@ import math
 
 class TaskJuggler:
     def __init__(self):
+        """Initialisiert eine Instanz von TaskJuggler."""
         self.tasks = []
         self.resources = {}
 
-    # Daten laden
     def load_data(self, tasks_file, resources_file):
+        """Lädt Aufgaben- und Ressourcendaten aus JSON-Dateien.
+
+        Args:
+            tasks_file (str): Der Dateipfad zur JSON-Datei mit den Aufgabendaten.
+            resources_file (str): Der Dateipfad zur JSON-Datei mit den Ressourcendaten.
+        """
         try:
             with open(tasks_file, "r") as f:
                 self.tasks = json.load(f)
-
             with open(resources_file, "r") as f:
                 self.resources = json.load(f)
-
             self.tasks = sorted(self.tasks, key=lambda x: x.get("deadline", ""))
             self.tasks_order = [task["name"] for task in self.tasks]
         except FileNotFoundError as e:
             print(f"Fehler beim Laden der Daten: {e}")
             exit()
 
-    # Zeitplan generieren
     def generate_schedule(self):
+        """Generiert den Wochenzeitplan basierend auf den geladenen Daten.
+
+        Returns:
+            dict: Der Wochenzeitplan mit Aufgaben, Ressourcen und Zeiten.
+        """
         schedule = {}
-
         for task in self.tasks:
-            task_name = task.get("name")
-            task_duration = task.get("duration")
-            task_resources = task.get("resources")
-            task_deadline = task.get("deadline")
-            task_start_time = task.get("start_time")
-
-            if not all([task_name, task_duration, task_resources, task_deadline, task_start_time]):
+            name, duration, resources, deadline, start_time = task.get("name"), task.get("duration"), task.get("resources"), task.get("deadline"), task.get("start_time")
+            if not all([name, duration, resources, deadline, start_time]):
                 print("Ungültige Aufgabe in der Datenquelle.")
                 continue
-
-            total_duration_needed = sum(task_duration for _ in task_resources)
-
-            for resource_name in task_resources:
+            total_duration_needed = sum(duration for _ in resources)
+            for resource_name in resources:
                 if resource_name not in self.resources:
-                    print(f"Unbekannte Ressource '{resource_name}' in der Aufgabe '{task_name}'.")
+                    print(f"Unbekannte Ressource '{resource_name}' in der Aufgabe '{name}'.")
                     continue
-
-                resource_data = self.resources[resource_name]
-                resource_availability = resource_data["availability"]
-                resource_plan_factor = resource_data.get("plan_factor", 1.0)  # Default Planfaktor ist 1.0
-                resource_absence_factor = resource_data.get("absence_factor", 1.0)  # Default Abwesenheitsfaktor ist 1.0
-
-                allocation_ratio = min(task_duration / total_duration_needed, resource_availability / total_duration_needed)
-                allocated_duration = round(allocation_ratio * task_duration * resource_plan_factor * resource_absence_factor, 2)
-
+                availability = self.resources[resource_name]["availability"]
+                allocation_ratio = min(duration / total_duration_needed, availability / total_duration_needed)
+                allocated_duration = round(allocation_ratio * duration, 2)
                 if allocated_duration > 24:
                     days = math.ceil(allocated_duration / 24)
-                    schedule.setdefault(task_name, {}).setdefault(resource_name, []).append((f"{days} days", task_start_time))
+                    schedule.setdefault(name, {}).setdefault(resource_name, []).append((f"{days} days", start_time))
                 else:
-                    schedule.setdefault(task_name, {}).setdefault(resource_name, []).append((f"{allocated_duration} hours", task_start_time))
-
+                    schedule.setdefault(name, {}).setdefault(resource_name, []).append((f"{allocated_duration} hours", start_time))
                 self.resources[resource_name]["availability"] -= allocated_duration
-
         schedule["tasks_order"] = self.tasks_order
-
         return schedule
 
-    # Zeitplan anzeigen
     def display_schedule(self, schedule):
+        """Zeigt den Wochenzeitplan im Terminal an.
+
+        Args:
+            schedule (dict): Der zuvor generierte Wochenzeitplan.
+        """
         print("\033[1mWeekly Schedule:\033[0m")
         for task, resources in schedule.items():
             if task == "tasks_order":
