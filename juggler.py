@@ -1,5 +1,6 @@
 import json
 import math
+from datetime import datetime, timedelta
 
 class TaskJuggler:
     def __init__(self):
@@ -82,6 +83,48 @@ class TaskJuggler:
                 if task:
                     print(f"\tTask: {task_name}, Deadline: {task.get('deadline')}")
 
+    def extend_task_duration(self, task_name, absent_user):
+        """Verlängert die Dauer einer Aufgabe aufgrund der Abwesenheit eines Benutzers.
+
+        Args:
+            task_name (str): Der Name der Aufgabe, die verlängert werden soll.
+            absent_user (str): Der Name des abwesenden Benutzers.
+
+        Returns:
+            bool: True, wenn die Aufgabe erfolgreich verlängert wurde, sonst False.
+        """
+        for task in self.tasks:
+            if task["name"] == task_name:
+                deadline = datetime.strptime(task["deadline"], "%Y-%m-%d")
+                new_deadline = deadline + timedelta(days=1)  # Verlängern um einen Tag (Beispiel)
+                task["deadline"] = new_deadline.strftime("%Y-%m-%d")
+                return True
+        print(f"Aufgabe '{task_name}' nicht gefunden.")
+        return False
+
+    def reallocate_resources(self, task_name, absent_user):
+        """Neuverteilung der Ressourcen aufgrund der Abwesenheit eines Benutzers.
+
+        Args:
+            task_name (str): Der Name der Aufgabe, die neu zugewiesen werden soll.
+            absent_user (str): Der Name des abwesenden Benutzers.
+
+        Returns:
+            bool: True, wenn die Ressourcen erfolgreich neu zugewiesen wurden, sonst False.
+        """
+        for task in self.tasks:
+            if task["name"] == task_name:
+                resources_needed = task["resources"]
+                remaining_resources = [resource for resource in resources_needed if resource != absent_user]
+                if remaining_resources:
+                    task["resources"] = remaining_resources
+                    return True
+                else:
+                    print("Keine verbleibenden Ressourcen für die Aufgabe.")
+                    return False
+        print(f"Aufgabe '{task_name}' nicht gefunden.")
+        return False
+
 if __name__ == "__main__":
     # Hauptskript
     task_juggler = TaskJuggler()
@@ -94,3 +137,11 @@ if __name__ == "__main__":
 
     # Zeitplan anzeigen
     task_juggler.display_schedule(schedule)
+
+    # Beispiel für die Anwendung der neuen Funktionen
+    task_name = "Task1"
+    absent_user = "Max"
+    if task_juggler.extend_task_duration(task_name, absent_user):
+        print(f"Aufgabe '{task_name}' wurde verlängert, da {absent_user} abwesend ist.")
+    if task_juggler.reallocate_resources(task_name, absent_user):
+        print(f"Ressourcen für Aufgabe '{task_name}' wurden neu zugewiesen aufgrund der Abwesenheit von {absent_user}.")
