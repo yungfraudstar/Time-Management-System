@@ -125,12 +125,30 @@ class TaskJuggler:
         print(f"Aufgabe '{task_name}' nicht gefunden.")
         return False
 
+    def apply_absence_logic(self):
+        """Wendet die Abwesenheitslogik auf die Aufgaben an."""
+        for task in self.tasks:
+            resources_needed = task.get("resources", [])
+            for resource_name in resources_needed:
+                if resource_name in self.resources:
+                    resource_data = self.resources[resource_name]
+                    if "absence" in resource_data:
+                        absence_data = resource_data["absence"]
+                        start_date = datetime.strptime(absence_data["start_date"], "%Y-%m-%d")
+                        end_date = datetime.strptime(absence_data["end_date"], "%Y-%m-%d")
+                        task_start_date = datetime.strptime(task["start_time"], "%Y-%m-%d")
+                        if start_date <= task_start_date <= end_date:
+                            print(f"Benutzer {resource_name} ist während der Aufgabe {task['name']} abwesend.")
+
 if __name__ == "__main__":
     # Hauptskript
     task_juggler = TaskJuggler()
 
     # Daten laden
     task_juggler.load_data("tasks.json", "resources.json")
+
+    # Anwendung der Abwesenheitslogik
+    task_juggler.apply_absence_logic()
 
     # Zeitplan generieren
     schedule = task_juggler.generate_schedule()
